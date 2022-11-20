@@ -1,0 +1,13 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.alibaba.cloud.nacos.discovery.NacosDiscoveryAutoConfiguration,\
+  com.alibaba.cloud.nacos.ribbon.RibbonNacosAutoConfiguration,\
+  com.alibaba.cloud.nacos.endpoint.NacosDiscoveryEndpointAutoConfiguration,\
+  com.alibaba.cloud.nacos.registry.NacosServiceRegistryAutoConfiguration,\
+  com.alibaba.cloud.nacos.discovery.NacosDiscoveryClientConfiguration,\
+  com.alibaba.cloud.nacos.discovery.reactive.NacosReactiveDiscoveryClientConfiguration,\
+  com.alibaba.cloud.nacos.discovery.configclient.NacosConfigServerAutoConfiguration,\
+  com.alibaba.cloud.nacos.NacosServiceAutoConfiguration
+org.springframework.cloud.bootstrap.BootstrapConfiguration=\
+  com.alibaba.cloud.nacos.discovery.configclient.NacosDiscoveryClientConfigServiceBootstrapConfiguration
+org.springframework.context.ApplicationListener=\
+  com.alibaba.cloud.nacos.discovery.logging.NacosLoggingListener
