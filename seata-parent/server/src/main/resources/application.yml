@@ -8,29 +8,58 @@ spring:
 logging:
   config: classpath:logback-spring.xml
   file:
-    path: ${user.home}/logs/seata
-  extend:
-    logstash-appender:
-      destination: 127.0.0.1:4560
-    kafka-appender:
-      bootstrap-servers: 127.0.0.1:9092
-      topic: logback_to_logstash
+    path: ~/logs/seata
+#  extend:
+#    logstash-appender:
+#      destination: 127.0.0.1:4560
+#    kafka-appender:
+#      bootstrap-servers: 127.0.0.1:9092
+#      topic: logback_to_logstash
 
-console:
-  user:
-    username: seata
-    password: seata
+#console:
+#  user:
+#    username: seata
+#    password: seata
 
 seata:
   config:
     # support: nacos, consul, apollo, zk, etcd3
-    type: file
+    type: nacos
+    nacos:
+      server-addr: localhost:8848
+      namespace: DEFAULT
+      group: SEATA_GROUP
+      username: nacos
+      password: nacos
   registry:
     # support: nacos, eureka, redis, zk, consul, etcd3, sofa
-    type: file
+    type: nacos
+    nacos:
+      application: seata-server
+      server-addr: localhost:8848
+      group: SEATA_GROUP
+      namespace: DEFAULT
+      cluster: default
+      username: nacos
+      password: nacos
   store:
     # support: file 、 db 、 redis
-    mode: file
+    mode: db
+    db:
+      datasource: druid
+      db-type: mysql
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://127.0.0.1:3306/seata?rewriteBatchedStatements=true
+      user: root
+      password: root1024
+      min-conn: 5
+      max-conn: 100
+      global-table: global_table
+      branch-table: branch_table
+      lock-table: lock_table
+      distributed-lock-table: distributed_lock
+      query-limit: 100
+      max-wait: 5000
 #  server:
 #    service-port: 8091 #If not configured, the default is '${server.port} + 1000'
   security:

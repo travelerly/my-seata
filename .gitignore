@@ -38,6 +38,8 @@ target
 *.patch
 *.tmp
 
+/sessionStore
+
 # Maven ignore
 .flattened-pom.xml
 

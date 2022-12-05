@@ -112,11 +112,11 @@
         <module>spring-cloud-alibaba-starters</module>
         <module>spring-cloud-alibaba-coverage</module>
         <module>seata-parent</module>
+        <module>colin-demo</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
-
             <!-- Spring Dependencies -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>

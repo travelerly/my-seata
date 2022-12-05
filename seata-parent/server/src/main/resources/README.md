@@ -1,33 +1,32 @@
-# Script Description
+# 脚本说明
 
 ## [client](https://github.com/seata/seata/tree/develop/script/client) 
 
-> Store configuration and SQL for client side
+> 存放用于客户端的配置和SQL
 
-- at: Script of create table `undo_log` for AT mode.
-- conf: Configuration which client need.
-- saga: Script of create table in SAGA mode
-- spring: Configuration for Spring Boot 
+- at: AT模式下的 `undo_log` 建表语句
+- conf: 客户端的配置文件
+- saga: SAGA 模式下所需表的建表语句
+- spring: SpringBoot 应用支持的配置文件
 
 ## [server](https://github.com/seata/seata/tree/develop/script/server)
 
-> Store SQL and deploy script for server side
+> 存放server侧所需SQL和部署脚本
 
-- db: Create table script for server when store mode is `db`
-- docker-compose: Script for deploy server by docker-compose
-- helm: Script for deploy server by Helm
-- kubernetes: Script for deploy server by Kubernetes
+- db: server 侧的保存模式为 `db` 时所需表的建表语句
+- docker-compose: server 侧通过 docker-compose 部署的脚本
+- helm: server 侧通过 Helm 部署的脚本
+- kubernetes: server 侧通过 Kubernetes 部署的脚本
 
 ## [config-center](https://github.com/seata/seata/tree/develop/script/config-center)
 
-> Store initialize script for configuration center, will use `config.txt` as configuration when initial
+> 用于存放各种配置中心的初始化脚本，执行时都会读取 `config.txt`配置文件，并写入配置中心
 
-- nacos: Initialize script for Nacos
-- zk: Initialize script for ZooKeeper, the script need related script in Zookeeper, you need download yourself. You can modify `zk-params.txt` to change the ZooKeeper server configuration, or input when execute also
-- apollo: Initialize script for Apollo. You can modify `apollo-params.txt` to change the Apollo server configuration, or input when execute also
-- etcd3: Initialize script for Etcd3
-- consul: Initialize script for consul
+- nacos: 用于向 Nacos 中添加配置
+- zk: 用于向 Zookeeper 中添加配置，脚本依赖 Zookeeper 的相关脚本，需要手动下载；ZooKeeper相关的配置可以写在 `zk-params.txt` 中，也可以在执行的时候输入
+- apollo: 向 Apollo 中添加配置，Apollo 的地址端口等可以写在 `apollo-params.txt`，也可以在执行的时候输入
+- etcd3: 用于向 Etcd3 中添加配置
+- consul: 用于向 consul 中添加配置
 
-## build packege 
+## 打包
 ./mvnw -Prelease-seata -Dmaven.test.skip=true clean install -U
-
