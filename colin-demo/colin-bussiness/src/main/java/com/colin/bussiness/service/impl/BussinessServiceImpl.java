@@ -6,9 +6,9 @@ import com.colin.bussiness.feign.PointsServiceFeign;
 import com.colin.bussiness.feign.StorageServiceFeign;
 import com.colin.bussiness.service.BussinessService;
 import com.colin.bussiness.utils.IdWorker;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 业务逻辑
@@ -34,7 +34,8 @@ public class BussinessServiceImpl implements BussinessService {
      * @param username 用户名
      * @param money    金额
      */
-    @Transactional
+    /*@Transactional*/
+    @GlobalTransactional(rollbackFor = Exception.class,timeoutMills = 6000,name = "sale")
     public void sale(Integer goodsId, Integer num, Double money, String username) {
         //创建订单
         orderServiceFeign.addOrder(idWorker.nextId(), goodsId, num, money, username);

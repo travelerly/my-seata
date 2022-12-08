@@ -3,20 +3,38 @@ server:
 spring:
   application:
     name: colin-bussiness-service
-#  datasource:
-#    driver-class-name: com.mysql.jdbc.Driver
-#    url: jdbc:mysql://localhost:3306/seata_bussiness
-#    password: root
-#    username: root1024
-  # nacos配置
   cloud:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
         username: nacos
         password: nacos
+
+seata:
+  enabled: true
+  application-id: ${spring.application.name}
+  tx-service-group: default_tx_group
+  config:
+    type: nacos
+    nacos:
+      serverAddr: 127.0.0.1:8848
+      dataId: "seataServer.properties"
+      username: "nacos"
+      password: "nacos"
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server
+      server-addr: 127.0.0.1:8848
+      username: "nacos"
+      password: "nacos"
+
 ribbon:
   # 指的是建立连接所用的时间，适用于网络状况正常的情况下，两端连接所用的时间。
   ReadTimeout: 500000
   # 指的是建立连接后从服务器读取到可用资源所用的时间。
   ConnectTimeout: 50000
+
+logging:
+  level:
+    com.colin: debug

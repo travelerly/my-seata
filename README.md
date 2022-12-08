@@ -1,146 +1,159 @@
-# Spring Cloud Alibaba
+# Seata
 
-[![CircleCI](https://circleci.com/gh/alibaba/spring-cloud-alibaba/tree/master.svg?style=svg)](https://circleci.com/gh/alibaba/spring-cloud-alibaba/tree/master)
-[![Maven Central](https://img.shields.io/maven-central/v/com.alibaba.cloud/spring-cloud-alibaba-dependencies.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:com.alibaba.cloud%20AND%20a:spring-cloud-alibaba-dependencies)
-[![Codecov](https://codecov.io/gh/alibaba/spring-cloud-alibaba/branch/master/graph/badge.svg)](https://codecov.io/gh/alibaba/spring-cloud-alibaba)
-[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
+## 1.1 Seata 简介
 
-A project maintained by Alibaba.
+Seata 是一款开源的分布式事务框架。致力于在微服务架构下提高性能和简单易用的分布式事务服务。Seata 将为用户提供了 AT、TCC、SAGA 和 XA 事务模式，为用户打造一站式的分布式解决方案。
 
-See the [中文文档](https://github.com/alibaba/spring-cloud-alibaba/blob/master/README-zh.md) for Chinese readme.
+Seata 官网：https://seata.io/zh-cn/index.html
 
-Spring Cloud Alibaba provides a one-stop solution for distributed application development. It contains all the components required to develop distributed applications, making it easy for you to develop your applications using Spring Cloud.
-
-With Spring Cloud Alibaba, you only need to add some annotations and a small amount of configurations to connect Spring Cloud applications to the distributed solutions of Alibaba, and build a distributed application system with Alibaba middleware.
+<img src="https://user-images.githubusercontent.com/68344696/145942191-7a2d469f-94c8-4cd2-8c7e-46ad75683636.png" style="zoom:50%;" />
 
 
-## Features
 
-* **Flow control and service degradation**: Flow control for HTTP services is supported by default. You can also customize flow control and service degradation rules using annotations. The rules can be changed dynamically.
-* **Service registration and discovery**: Service can be registered and clients can discover the instances using Spring-managed beans, auto integration Ribbon.
-* **Distributed configuration**: Support for externalized configuration in a distributed system, auto refresh when configuration changes.
-* **Event-driven**: Support for building highly scalable event-driven microservices connected with shared messaging systems.
-* **Distributed Transaction**: Support for distributed transaction solution with high performance and ease of use.
-* **Alibaba Cloud Object Storage**: Massive, secure, low-cost, and highly reliable cloud storage services. Support for storing and accessing any type of data in any application, anytime, anywhere.
-* **Alibaba Cloud SchedulerX**: Accurate, highly reliable, and highly available scheduled job scheduling services with response time within seconds.
-* **Alibaba Cloud SMS**: A messaging service that covers the globe, Alibaba SMS provides convenient, efficient, and intelligent communication capabilities that help businesses quickly contact their customers.
+## 1.2 Seata 功能特色
 
-For more features, please refer to [Roadmap](https://github.com/alibaba/spring-cloud-alibaba/blob/master/Roadmap.md).
+1. 微服务框架支持
 
-In addition to the above-mentioned features, for the needs of enterprise users' scenarios, [Microservices Engine (MSE)](https://www.aliyun.com/product/aliware/mse?spm=github.spring.com.topbar) of Spring Cloud Alibaba's enterprise version provides an enterprise-level microservices governance center, which includes more powerful governance capabilities such as Grayscale Release, Service Warm-up, Lossless Online and Offline and Outlier Ejection. At the same time, it also provides a variety of products and solutions such as enterprise-level Nacos registration / configuration center, enterprise-level cloud native gateway.
+    目前支持 Dubbo、Spring Cloud、Sofa-RPC、Motan 和 grpc 等 RPC 框架。
 
+2. AT 模式
 
-## Components
+    提供无侵入自动补偿的事务模式，目前支持 MySQL、Oracle、PostgreSQL 和 TiDB 的 AT 模式。是默认模式。
 
-**[Sentinel](https://github.com/alibaba/Sentinel)**: Sentinel takes "traffic flow" as the breakthrough point, and provides solutions in areas such as flow control, concurrency, circuit breaking, and load protection to protect service stability.
+3. TCC 模式
 
-**[Nacos](https://github.com/alibaba/Nacos)**: An easy-to-use dynamic service discovery, configuration and service management platform for building cloud native applications.
+    支持 TCC 模式，并可与 AT 混用，灵活度更高。
 
-**[RocketMQ](https://rocketmq.apache.org/)**: A distributed messaging and streaming platform with low latency, high performance and reliability, trillion-level capacity and flexible scalability.
+4. SAGA 模式
 
-**[Seata](https://github.com/seata/seata)**: A distributed transaction solution with high performance and ease of use for microservices architecture.
+    为长事务提供有效的解决方案。
 
-**[Alibaba Cloud OSS](https://www.aliyun.com/product/oss)**: An encrypted and secure cloud storage service which stores, processes and accesses massive amounts of data from anywhere in the world.
+5. XA 模式
 
-**[Alibaba Cloud SMS](https://www.aliyun.com/product/sms)**: A messaging service that covers the globe, Alibaba SMS provides convenient, efficient, and intelligent communication capabilities that help businesses quickly contact their customers.
+    支持已实现 XA 接口的数据库的 XA 模式。
 
-**[Alibaba Cloud SchedulerX](https://www.aliyun.com/aliware/schedulerx?spm=5176.10695662.784137.1.4b07363dej23L3)**: Accurate, highly reliable, and highly available scheduled job scheduling services with response time within seconds.
+6. 高可用
 
-For more features please refer to [Roadmap](https://github.com/alibaba/spring-cloud-alibaba/blob/master/Roadmap.md).
-
-## How to build
-* **2020.0 branch**: Corresponds to Spring Cloud 2020 & Spring Boot 2.4.x. JDK 1.8 or later versions are supported.
-* **master branch**: Corresponds to Spring Cloud Hoxton & Spring Boot 2.2.x. JDK 1.8 or later versions are supported.
-* **greenwich branch**: Corresponds to Spring Cloud Greenwich & Spring Boot 2.1.x. JDK 1.8 or later versions are supported.
-* **finchley branch**: Corresponds to Spring Cloud Finchley & Spring Boot 2.0.x. JDK 1.8 or later versions are supported.
-* **1.x branch**: Corresponds to Spring Cloud Edgware & Spring Boot 1.x, JDK 1.7 or later versions are supported.
-
-Spring Cloud uses Maven for most build-related activities, and you should be able to get off the ground quite quickly by cloning the project you are interested in and typing:
-```bash
-./mvnw install
-```
-
-## How to Use
-
-### Add maven dependency 
-
-These artifacts are available from Maven Central and Spring Release repository via BOM:
-```xml
-<dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-alibaba-dependencies</artifactId>
-            <version>2.2.8.RELEASE</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
-    </dependencies>
-</dependencyManagement>
-```
-add the module in  `dependencies`.
+    支持基于数据库存储的集群模式，水平扩展能力强。
 
 
-### Reference Doc
 
-[Contents](https://github.com/alibaba/spring-cloud-alibaba/blob/master/spring-cloud-alibaba-docs/src/main/asciidoc-zh/spring-cloud-alibaba.adoc)
+## 1.3 Seata 的三大角色
 
-[Nacos Config](https://github.com/alibaba/spring-cloud-alibaba/blob/master/spring-cloud-alibaba-docs/src/main/asciidoc-zh/nacos-config.adoc)
+Seata 中有三大角色，分别是 TM、RM 和 TC。其中 TM 和 RM 是作为 Seata 的客户端与业务系统集成在一起，TC 作为 Seata 的服务端单独部署。
 
-[Nacos Discovery](https://github.com/alibaba/spring-cloud-alibaba/blob/master/spring-cloud-alibaba-docs/src/main/asciidoc-zh/nacos-discovery.adoc)
+1. TC（Transaction Coordinator）事务协调者
+
+    维护全局和分支事务的状态，驱动全局事务提交或回滚
+
+2. TM（Transaction Manager）事务管理器
+
+    定义全局事务范围：开始全局事务、提交或回滚全局事务
+
+3. RM（Resource Manager）资源管理器
+
+    管理分支事务处理的资源，与 TC 交谈以及注册分支事务和报告分支事务的状态，并驱动分支事务提交或回滚
+
+<img src="img/Seata分布式事务的执⾏流程.jpg" style="zoom:50%;" />
+
+在 Seata 中，一个分布式事务的生命周期：
+
+1. TM 请求 TC 开启一个全局事务，TC 会生成一个 XID 作为该全局事务的编号，XID 会在微服务的调用链路中传播，保证将多个微服务的子事务关联在一起；
+2. RM 请求 TC 将本地事务注册为全局事务的分支事务，通过全局事务的 XID 进行关联；
+3. TM 请求 TC 通知 XID 所对应的全局事务进行提交/回滚
+4. TC 驱动 RM 将 XID 对应的自身的本地事务进行提交/回滚
 
 
-## Examples
 
-A `spring-cloud-alibaba-examples` module is included in our project for you to get started with Spring Cloud Alibaba quickly. It contains an example, and you can refer to the readme file in the example project for a quick walkthrough.
+## Seata  AT 模式的设计思路
 
-Examples：
+AT 模式是一种无侵入的分布式事务解决方案，在 AT 模式下，用户只关注自己的业务 SQL，用户的业务 SQL 作为第一阶段，Seata 框架会自动生成事务的第二阶段并进行提交或回滚的操作。
 
-[Sentinel Example](https://github.com/alibaba/spring-cloud-alibaba/tree/master/spring-cloud-alibaba-examples/sentinel-example/sentinel-core-example/readme.md)
+AT 模式的核心是对业务无侵入，是一种改进后的两阶段提交，其设计思路如下：
 
-[Nacos Config Example](https://github.com/alibaba/spring-cloud-alibaba/blob/master/spring-cloud-alibaba-examples/nacos-example/nacos-config-example/readme.md)
-
-[Nacos Discovery Example](https://github.com/alibaba/spring-cloud-alibaba/blob/master/spring-cloud-alibaba-examples/nacos-example/nacos-discovery-example/readme.md)
-
-[RocketMQ Example](https://github.com/alibaba/spring-cloud-alibaba/blob/master/spring-cloud-alibaba-examples/rocketmq-example/readme.md)
-
-[Alibaba Cloud OSS Example](https://github.com/alibaba/aliyun-spring-boot/tree/master/aliyun-spring-boot-samples/aliyun-oss-spring-boot-sample)
+<img src="img/Seata AT 模式示例.jpg" style="zoom:50%;" />
 
 
-## Version control guidelines
-The version number of the project is in the form of x.x.x, where x is a number, starting from 0, and is not limited to the range 0~9. When the project is in the incubator phase, the version number is 0.x.x.
 
-As the interfaces and annotations of Spring Boot 1 and Spring Boot 2 have been changed significantly in the Actuator module, and spring-cloud-commons is also changed quite a lot from 1.x.x to 2.0.0, we take the same version rule as SpringBoot version number.
+### 第一阶段
 
-* 1.5.x for Spring Boot 1.5.x
-* 2.0.x for Spring Boot 2.0.x
-* 2.1.x for Spring Boot 2.1.x
-* 2.2.x for Spring Boot 2.2.x
-* 2020.x for Spring Boot 2.4.x
+在第一阶段，Seata 会拦截业务 SQL，首先解析 SQL 语义，找到业务 SQL 要更新的业务数据，在业务数据被更新前，将其保存成 before imgae，然后执行业务 SQL 来更新业务数据，在业务数据更新之后，在将其保存成 after image，最后生成行锁。以上操作全部在一个数据库事务内完成，这样保证了一段操作的原子性。
 
-## Code of Conduct
-This project is a sub-project of Spring Cloud, it adheres to the Contributor Covenant [code of conduct](https://github.com/spring-cloud/spring-cloud-build/blob/master/docs/src/main/asciidoc/code-of-conduct.adoc). By participating, you are expected to uphold this code. Please report unacceptable behavior to spring-code-of-conduct@pivotal.io.
+参考官方文档： https://seata.io/zh-cn/docs/dev/mode/at-mode.html
 
-## Code Conventions and Housekeeping
-None of these is essential for a pull request, but they will all help. They can also be added after the original pull request but before a merge.
+<img src="img/AT 模式第一阶段.png"/>
 
-Use the Spring Framework code format conventions. If you use Eclipse you can import formatter settings using the eclipse-code-formatter.xml file from the Spring Cloud Build project. If using IntelliJ, you can use the Eclipse Code Formatter Plugin to import the same file.
 
-Make sure all new .java files to have a simple Javadoc class comment with at least an @author tag identifying you, and preferably at least a paragraph on what the class is for.
 
-Add the ASF license header comment to all new .java files (copy from existing files in the project)
+### 第二阶段
 
-Add yourself as an @author to the .java files that you modify substantially (more than cosmetic changes).
+- 若所有分支事务都操作成功，即业务 SQL 在第一阶段已经提交至数据库，所以 Seata 框架只需要异步的将第一阶段保存的快照数据和行锁删掉，完成数据清理即可。
 
-Add some Javadocs and, if you change the namespace, some XSD doc elements.
+    <img src="img/AT 模式第二阶段提交.png"  />
 
-A few unit tests would help a lot as well —— someone has to do it.
+- 若存在分支事务操作失败，则 Seata 框架就需要回滚第一阶段已经执行的业务 SQL，还原业务数据。回滚的方式便是通过 before image 还原业务数据，但在还原之前要首先检验脏写，对比数据库当前业务数据和 after image，
 
-If no-one else is using your branch, please rebase it against the current master (or other target branch in the main project).
+    - 如果两份数据完全一致，就说明没有脏写，可以还原业务数据，并删除 undolog
+    - 如果两份数据不一致，就说明存在脏写，此时就需要转人工处理。
+    
+    <img src="img/AT 模式第二阶段回滚.png"  />
 
-When writing a commit message please follow these conventions, if you are fixing an existing issue please add Fixes gh-XXXX at the end of the commit message (where XXXX is the issue number).
+### 二阶段的整体执行流程
 
-## Contact Us
-Mailing list is recommended for discussing almost anything related to spring-cloud-alibaba. 
+AT 模式的一阶段、二阶段提交和回滚均由 Seata 框架自动完成，用户只需要编写业务 SQL，便能轻松接入分布式事务，AT 模式是一种对业务无任何侵入的分布式事务解决方案。
 
-spring-cloud-alibaba@googlegroups.com: You can ask questions here if you encounter any problem when using or developing spring-cloud-alibaba.
+<img src="img/AT 模式整体执行流程.png"  />
+
+
+
+### 写隔离
+
+- 一阶段本地事务提交前，需要确保先拿到**全局锁**
+- 若无法获取到全局锁，则不能提交本地事务
+- 获取全局锁的尝试被限制在一定范围内，超出范围将放弃，并回滚本地事务，释放本地锁
+
+
+
+
+
+
+
+### 设计亮点
+
+Seata 架构的设计亮点：
+
+1. 应用层基于 SQL 解析，实现了自动补偿，从而最大程度的降低业务侵入性；
+2. 将分布式事务中的 TC（事务协调者）独立部署，负责事务的注册、回滚；
+3. 通过全局（行）锁实现了写隔离与读隔离。
+
+
+
+### 存在的问题
+
+#### 性能损耗
+
+对数据库的一个写操作，需要执行以下操作
+
+1. 则需要全局事务 XID 获取（与 TC 通讯）；
+2. Before image（解析 SQL，查询一次数据库）；
+3. After image（查询一次数据库）；
+4. insert undolog（写一次数据库）；
+5. Before commit（与 TC 通讯，判断锁冲突）
+
+这些操作都需要一次远程 RPC 通讯，而且是同步的。另外 undolog 写入的时候 blob 字段的插入性能也是不高的，每条写 SQL 都会增加这么多开销。
+
+
+
+#### 全局锁
+
+1. 热点数据
+
+    相比 XA，Seata 虽然在一阶段成功后会释放数据库锁，但一阶段在 commit 前，全局行锁的判断也拉长了对数据锁的占有时间。全局锁的引入实现了隔离性，但带来的问题就是阻塞，降低并发性，尤其是热点数据，这个问题会更加严重。
+
+2. 回滚锁释放时间
+
+    Seata 在回滚时，需要先删除各节点的 undolog，然后才能释放 TC 内存中的锁，所以，如果第二阶段是回滚，释放锁的时间会更长。
+
+3. 死锁问题
+
+    Seata 的引入全局锁会额外增加死锁的风险，但如果出现死锁，会不断进行重试，最后靠等待全局锁超时，这种方式并不优雅，也延长了对数据库锁的占有时间。

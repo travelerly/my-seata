@@ -16,15 +16,9 @@
 
 package com.alibaba.cloud.examples;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.Random;
-
 import io.seata.core.context.RootContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -38,6 +32,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Random;
 
 /**
  * @author xiaojing
@@ -73,6 +72,9 @@ public class OrderController {
 
 		int orderMoney = calculate(commodityCode, orderCount);
 
+		/**
+		 * 调用 account-service
+		 */
 		invokerAccountService(orderMoney);
 
 		final Order order = new Order();
@@ -83,6 +85,9 @@ public class OrderController {
 
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
+		/**
+		 * 操作本地事务
+		 */
 		int result = jdbcTemplate.update(new PreparedStatementCreator() {
 
 			@Override

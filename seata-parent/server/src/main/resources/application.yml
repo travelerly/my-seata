@@ -16,29 +16,30 @@ logging:
 #      bootstrap-servers: 127.0.0.1:9092
 #      topic: logback_to_logstash
 
-#console:
-#  user:
-#    username: seata
-#    password: seata
+console:
+  user:
+    username: seata
+    password: seata
 
 seata:
   config:
     # support: nacos, consul, apollo, zk, etcd3
     type: nacos
     nacos:
-      server-addr: localhost:8848
-      namespace: DEFAULT
+      server-addr: 127.0.0.1:8848
+      namespace: ""
       group: SEATA_GROUP
       username: nacos
       password: nacos
+      data-id: seataServer.properties
   registry:
     # support: nacos, eureka, redis, zk, consul, etcd3, sofa
     type: nacos
     nacos:
       application: seata-server
-      server-addr: localhost:8848
+      server-addr: 127.0.0.1:8848
       group: SEATA_GROUP
-      namespace: DEFAULT
+      namespace: ""
       cluster: default
       username: nacos
       password: nacos
@@ -48,8 +49,8 @@ seata:
     db:
       datasource: druid
       db-type: mysql
-      driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://127.0.0.1:3306/seata?rewriteBatchedStatements=true
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://127.0.0.1:3306/seata?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
       user: root
       password: root1024
       min-conn: 5

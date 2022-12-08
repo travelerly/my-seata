@@ -15,13 +15,13 @@ spring:
 seata:
   enabled: true
   application-id: ${spring.application.name}
-
-  tx-service-group: ${spring.application.name}-tx-group
+  # tx-service-group: ${spring.application.name}-tx-group
+  tx-service-group: default_tx_group
   config:
     type: nacos
     nacos:
       serverAddr: 127.0.0.1:8848
-      dataId: "seata.properties"
+      dataId: "seataServer.properties"
       username: "nacos"
       password: "nacos"
   registry:

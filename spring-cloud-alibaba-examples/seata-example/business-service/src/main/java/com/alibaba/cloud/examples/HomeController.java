@@ -63,10 +63,17 @@ public class HomeController {
 		this.storageService = storageService;
 	}
 
+	/**
+	 * 分支事务：storage-service、order-service
+	 * @return
+	 */
 	@GlobalTransactional(timeoutMills = 300000, name = "spring-cloud-demo-tx")
 	@GetMapping(value = "/seata/rest", produces = "application/json")
 	public String rest() {
 
+		/**
+		 * 18082：storage-service
+		 */
 		String result = restTemplate.getForObject(
 				"http://127.0.0.1:18082/storage/" + COMMODITY_CODE + "/" + ORDER_COUNT,
 				String.class);
@@ -89,6 +96,9 @@ public class HomeController {
 
 		ResponseEntity<String> response;
 		try {
+			/**
+			 * 18083：order-service
+			 */
 			response = restTemplate.postForEntity(url, request, String.class);
 		}
 		catch (Exception exx) {
