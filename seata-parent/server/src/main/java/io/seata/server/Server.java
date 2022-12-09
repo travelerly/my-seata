@@ -15,10 +15,6 @@
  */
 package io.seata.server;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
 import io.seata.common.XID;
 import io.seata.common.thread.NamedThreadFactory;
 import io.seata.common.util.NetUtil;
@@ -33,6 +29,10 @@ import io.seata.server.metrics.MetricsManager;
 import io.seata.server.session.SessionHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static io.seata.spring.boot.autoconfigure.StarterConstants.REGEX_SPLIT_CHAR;
 import static io.seata.spring.boot.autoconfigure.StarterConstants.REGISTRY_PREFERED_NETWORKS;
@@ -67,9 +67,12 @@ public class Server {
                 new LinkedBlockingQueue<>(NettyServerConfig.getMaxTaskQueueSize()),
                 new NamedThreadFactory("ServerHandlerThread", NettyServerConfig.getMaxServerPoolSize()), new ThreadPoolExecutor.CallerRunsPolicy());
 
+        /**
+         * 创建 netty 远程服务器
+         */
         NettyRemotingServer nettyRemotingServer = new NettyRemotingServer(workingThreads);
         UUIDGenerator.init(parameterParser.getServerNode());
-        //log store mode : file, db, redis
+        // 设置日志的存储方式（文件、数据库、redis）。log store mode : file, db, redis
         SessionHolder.init(parameterParser.getSessionStoreMode());
         LockerManagerFactory.init(parameterParser.getLockStoreMode());
         DefaultCoordinator coordinator = DefaultCoordinator.getInstance(nettyRemotingServer);
@@ -90,6 +93,16 @@ public class Server {
                 XID.setIpAddress(NetUtil.getLocalIp());
             }
         }
+
+        /**
+         * netty 服务端的初始化
+         * 注册处理器
+         * 1. 注册请求消息处理器
+         * 2. 注册响应消息处理器
+         * 3. 注册 RM 消息处理器
+         * 4. 注册 TM 消息处理器
+         * 5. 注册服务端心跳处理器
+         */
         nettyRemotingServer.init();
     }
 }

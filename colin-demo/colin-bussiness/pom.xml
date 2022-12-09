@@ -46,5 +46,10 @@
             <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
             <version>2.2.8.RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>io.seata</groupId>
+            <artifactId>seata-all</artifactId>
+            <version>1.5.0</version>
+        </dependency>
     </dependencies>
 </project>

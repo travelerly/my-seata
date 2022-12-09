@@ -65,6 +65,7 @@ public class RegTmProcessor implements RemotingProcessor {
         String errorInfo = StringUtils.EMPTY;
         try {
             if (null == checkAuthHandler || checkAuthHandler.regTransactionManagerCheckAuth(message)) {
+                // 注册 TM 通道（底层为 netty）
                 ChannelManager.registerTMChannel(message, ctx.channel());
                 Version.putChannelVersion(ctx.channel(), message.getVersion());
                 isSuccess = true;
@@ -83,10 +84,14 @@ public class RegTmProcessor implements RemotingProcessor {
             errorInfo = exx.getMessage();
             LOGGER.error("TM register fail, error message:{}", errorInfo);
         }
+
+        // 创建一个响应对象
         RegisterTMResponse response = new RegisterTMResponse(isSuccess);
         if (StringUtils.isNotEmpty(errorInfo)) {
             response.setMsg(errorInfo);
         }
+
+        // 发送响应
         remotingServer.sendAsyncResponse(rpcMessage, ctx.channel(), response);
         if (isSuccess && LOGGER.isInfoEnabled()) {
             LOGGER.info("TM register success,message:{},channel:{},client version:{}", message, ctx.channel(),

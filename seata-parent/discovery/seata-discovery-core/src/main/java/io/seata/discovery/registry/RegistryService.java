@@ -15,15 +15,12 @@
  */
 package io.seata.discovery.registry;
 
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import io.seata.config.ConfigurationCache;
 import io.seata.config.ConfigurationFactory;
+
+import java.net.InetSocketAddress;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The interface Registry service.
@@ -108,6 +105,7 @@ public interface RegistryService<T> {
      * @return the service group name
      */
     default String getServiceGroup(String key) {
+        // 拼接，nacos 中配置
         key = PREFIX_SERVICE_ROOT + CONFIG_SPLIT_CHAR + PREFIX_SERVICE_MAPPING + key;
         if (!SERVICE_GROUP_NAME.contains(key)) {
             ConfigurationCache.addConfigListener(key);

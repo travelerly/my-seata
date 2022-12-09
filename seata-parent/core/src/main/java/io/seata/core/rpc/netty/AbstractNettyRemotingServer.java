@@ -15,15 +15,7 @@
  */
 package io.seata.core.rpc.netty;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeoutException;
-
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
+import io.netty.channel.*;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -37,6 +29,10 @@ import io.seata.core.rpc.processor.Pair;
 import io.seata.core.rpc.processor.RemotingProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeoutException;
 
 /**
  * The type abstract remoting server.
@@ -53,12 +49,15 @@ public abstract class AbstractNettyRemotingServer extends AbstractNettyRemoting 
     @Override
     public void init() {
         super.init();
+        // 启动引导类
         serverBootstrap.start();
     }
 
     public AbstractNettyRemotingServer(ThreadPoolExecutor messageExecutor, NettyServerConfig nettyServerConfig) {
         super(messageExecutor);
+        // 通过配置创建引导类
         serverBootstrap = new NettyServerBootstrap(nettyServerConfig);
+        // 为引导类设置通道处理器
         serverBootstrap.setChannelHandlers(new ServerHandler());
     }
 
@@ -154,6 +153,7 @@ public abstract class AbstractNettyRemotingServer extends AbstractNettyRemoting 
     class ServerHandler extends ChannelDuplexHandler {
 
         /**
+         * 从 netty 通道内读取消息
          * Channel read.
          *
          * @param ctx the ctx
@@ -165,6 +165,7 @@ public abstract class AbstractNettyRemotingServer extends AbstractNettyRemoting 
             if (!(msg instanceof RpcMessage)) {
                 return;
             }
+            // 处理通道内的消息
             processMessage(ctx, (RpcMessage) msg);
         }
 

@@ -15,20 +15,16 @@
  */
 package io.seata.tm.api;
 
-import java.util.List;
-
 import io.seata.common.exception.ShouldNeverHappenException;
 import io.seata.core.context.GlobalLockConfigHolder;
 import io.seata.core.exception.TransactionException;
 import io.seata.core.model.GlobalLockConfig;
 import io.seata.core.model.GlobalStatus;
-import io.seata.tm.api.transaction.Propagation;
-import io.seata.tm.api.transaction.SuspendedResourcesHolder;
-import io.seata.tm.api.transaction.TransactionHook;
-import io.seata.tm.api.transaction.TransactionHookManager;
-import io.seata.tm.api.transaction.TransactionInfo;
+import io.seata.tm.api.transaction.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * Template of executing business logic with a global transaction.
@@ -48,15 +44,19 @@ public class TransactionalTemplate {
      * @throws TransactionalExecutor.ExecutionException the execution exception
      */
     public Object execute(TransactionalExecutor business) throws Throwable {
-        // 1. Get transactionInfo
+        // 1. 获取事务信息，即获取注解（GlobalTransactional）信息。Get transactionInfo
         TransactionInfo txInfo = business.getTransactionInfo();
         if (txInfo == null) {
             throw new ShouldNeverHappenException("transactionInfo does not exist");
         }
-        // 1.1 Get current transaction, if not null, the tx role is 'GlobalTransactionRole.Participant'.
+
+        /**
+         * 1.1 获取或者创建一个全局事务。
+         * et current transaction, if not null, the tx role is 'GlobalTransactionRole.Participant'.
+         */
         GlobalTransaction tx = GlobalTransactionContext.getCurrent();
 
-        // 1.2 Handle the transaction propagation.
+        // 1.2 处理事务传播。Handle the transaction propagation.
         Propagation propagation = txInfo.getPropagation();
         SuspendedResourcesHolder suspendedResourcesHolder = null;
         try {
@@ -117,21 +117,27 @@ public class TransactionalTemplate {
             GlobalLockConfig previousConfig = replaceGlobalLockConfig(txInfo);
 
             try {
-                // 2. If the tx role is 'GlobalTransactionRole.Launcher', send the request of beginTransaction to TC,
-                //    else do nothing. Of course, the hooks will still be triggered.
+                /**
+                 * 2. 开启事务，tm 向 tc 注册全局事务
+                 * If the tx role is 'GlobalTransactionRole.Launcher', send the request of beginTransaction to TC,
+                 * else do nothing. Of course, the hooks will still be triggered.
+                 */
                 beginTransaction(txInfo, tx);
 
                 Object rs;
                 try {
-                    // Do Your Business
+
+                    // 执行目标方法。Do Your Business
                     rs = business.execute();
+
                 } catch (Throwable ex) {
-                    // 3. The needed business exception to rollback.
+
+                    // 3. 回滚业务异常。The needed business exception to rollback.
                     completeTransactionAfterThrowing(txInfo, tx, ex);
                     throw ex;
                 }
 
-                // 4. everything is fine, commit.
+                // 4. 提交事务。everything is fine, commit.
                 commitTransaction(tx);
 
                 return rs;
@@ -212,6 +218,8 @@ public class TransactionalTemplate {
     private void beginTransaction(TransactionInfo txInfo, GlobalTransaction tx) throws TransactionalExecutor.ExecutionException {
         try {
             triggerBeforeBegin();
+
+            // 开启全局事务
             tx.begin(txInfo.getTimeOut(), txInfo.getName());
             triggerAfterBegin();
         } catch (TransactionException txe) {

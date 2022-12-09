@@ -15,15 +15,6 @@
  */
 package io.seata.server.storage.db.store;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.sql.DataSource;
-
 import io.seata.common.exception.DataAccessException;
 import io.seata.common.exception.StoreException;
 import io.seata.common.util.IOUtil;
@@ -38,6 +29,11 @@ import io.seata.core.store.LogStore;
 import io.seata.core.store.db.sql.log.LogStoreSqlsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.seata.common.DefaultValues.DEFAULT_STORE_DB_BRANCH_TABLE;
 import static io.seata.common.DefaultValues.DEFAULT_STORE_DB_GLOBAL_TABLE;
@@ -187,6 +183,7 @@ public class LogStoreDataBaseDAO implements LogStore {
 
     @Override
     public boolean insertGlobalTransactionDO(GlobalTransactionDO globalTransactionDO) {
+        // 生成全局事务插入的 sql
         String sql = LogStoreSqlsFactory.getLogStoreSqls(dbType).getInsertGlobalTransactionSQL(globalTable);
         Connection conn = null;
         PreparedStatement ps = null;
@@ -208,6 +205,7 @@ public class LogStoreDataBaseDAO implements LogStore {
             ps.setInt(index++, globalTransactionDO.getTimeout());
             ps.setLong(index++, globalTransactionDO.getBeginTime());
             ps.setString(index++, globalTransactionDO.getApplicationData());
+            // （global_table）插入数据
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new StoreException(e);

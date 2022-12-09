@@ -138,6 +138,7 @@ public class NettyClientBootstrap implements RemotingBootstrap {
                         .addLast(new ProtocolV1Decoder())
                         .addLast(new ProtocolV1Encoder());
                     if (channelHandlers != null) {
+                        // 添加管道处理器，即 ClientHandler，添加后即可在通道内读取消息
                         addChannelPipelineLast(ch, channelHandlers);
                     }
                 }

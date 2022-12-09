@@ -15,8 +15,6 @@
  */
 package io.seata.spring.boot.autoconfigure;
 
-import java.util.List;
-
 import io.seata.common.loader.EnhancedServiceLoader;
 import io.seata.spring.annotation.GlobalTransactionScanner;
 import io.seata.spring.annotation.ScannerChecker;
@@ -32,6 +30,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
+
+import java.util.List;
 
 import static io.seata.common.Constants.BEAN_NAME_FAILURE_HANDLER;
 import static io.seata.common.Constants.BEAN_NAME_SPRING_APPLICATION_CONTEXT_PROVIDER;
@@ -79,7 +79,12 @@ public class SeataAutoConfiguration {
         //set accessKey and secretKey
         GlobalTransactionScanner.setAccessKey(seataProperties.getAccessKey());
         GlobalTransactionScanner.setSecretKey(seataProperties.getSecretKey());
-        // create global transaction scanner
+        /**
+         * create global transaction scanner
+         * seataProperties.getTxServiceGroup()：获取配置的全局事务分组名称
+         * GlobalTransactionScanner 实现了 spring 生命周期接口，
+         * 在创建对象后，会执行 afterPropertiesSet() 方法
+         */
         return new GlobalTransactionScanner(seataProperties.getApplicationId(), seataProperties.getTxServiceGroup(), failureHandler);
     }
 }

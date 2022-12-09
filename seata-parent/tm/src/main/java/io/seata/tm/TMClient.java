@@ -43,7 +43,9 @@ public class TMClient {
      * @param secretKey               the secret key
      */
     public static void init(String applicationId, String transactionServiceGroup, String accessKey, String secretKey) {
+        // 创建 TM 的 netty 远程客户端
         TmNettyRemotingClient tmNettyRemotingClient = TmNettyRemotingClient.getInstance(applicationId, transactionServiceGroup, accessKey, secretKey);
+        // 初始化 TM 的 netty 远程客户端
         tmNettyRemotingClient.init();
     }
 

@@ -15,20 +15,6 @@
  */
 package io.seata.core.rpc.netty;
 
-import java.lang.reflect.Field;
-import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -43,13 +29,7 @@ import io.seata.common.thread.NamedThreadFactory;
 import io.seata.common.util.CollectionUtils;
 import io.seata.common.util.NetUtil;
 import io.seata.common.util.StringUtils;
-import io.seata.core.protocol.AbstractMessage;
-import io.seata.core.protocol.HeartbeatMessage;
-import io.seata.core.protocol.MergeMessage;
-import io.seata.core.protocol.MergedWarpMessage;
-import io.seata.core.protocol.MessageFuture;
-import io.seata.core.protocol.ProtocolConstants;
-import io.seata.core.protocol.RpcMessage;
+import io.seata.core.protocol.*;
 import io.seata.core.protocol.transaction.AbstractGlobalEndRequest;
 import io.seata.core.protocol.transaction.BranchRegisterRequest;
 import io.seata.core.protocol.transaction.BranchReportRequest;
@@ -62,6 +42,13 @@ import io.seata.discovery.loadbalance.LoadBalanceFactory;
 import io.seata.discovery.registry.RegistryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Field;
+import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.function.Function;
 
 import static io.seata.common.exception.FrameworkErrorCode.NoAvailableService;
 
@@ -108,9 +95,14 @@ public abstract class AbstractNettyRemotingClient extends AbstractNettyRemoting 
 
     @Override
     public void init() {
+        /**
+         * 启动一个线程，通过通道管理器执行连接
+         * 延迟 60s 连接，每次间隔 10 秒执行一次
+         */
         timerExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                // 通过通道管理器执行连接，即注册到 TC 上，与 Server 端进行连接
                 clientChannelManager.reconnect(getTransactionServiceGroup());
             }
         }, SCHEDULE_DELAY_MILLS, SCHEDULE_INTERVAL_MILLS, TimeUnit.MILLISECONDS);
@@ -123,6 +115,7 @@ public abstract class AbstractNettyRemotingClient extends AbstractNettyRemoting 
             mergeSendExecutorService.submit(new MergedSendRunnable());
         }
         super.init();
+
         clientBootstrap.start();
     }
 
@@ -130,8 +123,11 @@ public abstract class AbstractNettyRemotingClient extends AbstractNettyRemoting 
                                        ThreadPoolExecutor messageExecutor, NettyPoolKey.TransactionRole transactionRole) {
         super(messageExecutor);
         this.transactionRole = transactionRole;
+        // 创建 netty 客户端引导类
         clientBootstrap = new NettyClientBootstrap(nettyClientConfig, eventExecutorGroup, transactionRole);
+        // 设置通道处理程序（seata 的通道处理程序，在客户端使用 ClientHandler，在服务端使用 ServerHandler）
         clientBootstrap.setChannelHandlers(new ClientHandler());
+        // 创建 netty 客户端通道管理器
         clientChannelManager = new NettyClientChannelManager(
             new NettyPoolableFactory(this, clientBootstrap), getPoolKeyFunction(), nettyClientConfig);
     }
@@ -404,7 +400,7 @@ public abstract class AbstractNettyRemotingClient extends AbstractNettyRemoting 
     }
 
     /**
-     * The type ClientHandler.
+     * 读取通道内的消息并处理。The type ClientHandler.
      */
     @Sharable
     class ClientHandler extends ChannelDuplexHandler {
@@ -414,6 +410,7 @@ public abstract class AbstractNettyRemotingClient extends AbstractNettyRemoting 
             if (!(msg instanceof RpcMessage)) {
                 return;
             }
+            // 处理消息
             processMessage(ctx, (RpcMessage) msg);
         }
 
