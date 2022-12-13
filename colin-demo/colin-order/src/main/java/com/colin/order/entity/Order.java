@@ -50,5 +50,11 @@ public class Order implements Serializable {
      */
     @TableField
     private String username;
+
+    /**
+     * setatus
+     */
+    @TableField
+    private Integer status;
 }
 

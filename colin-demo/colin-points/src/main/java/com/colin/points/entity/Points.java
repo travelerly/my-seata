@@ -30,4 +30,10 @@ public class Points {
      */
     @TableField
     private Integer points;
+
+    /**
+     * frozen_points
+     */
+    @TableField
+    private Integer frozenPoints;
 }

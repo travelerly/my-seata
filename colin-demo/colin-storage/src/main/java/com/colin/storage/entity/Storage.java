@@ -27,4 +27,10 @@ public class Storage {
      */
     @TableField
     private Integer storage;
+
+    /**
+     * 冻结库存量
+     */
+    @TableField
+    private Integer frozenStorage;
 }

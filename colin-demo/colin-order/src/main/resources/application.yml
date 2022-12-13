@@ -15,23 +15,21 @@ spring:
         server-addr: 127.0.0.1:8848
         username: nacos
         password: nacos
-  profiles:
-    active: seata
-#seata:
-#  enabled: true
-#  application-id: ${spring.application.name}
-#  tx-service-group: default_tx_group
-#  config:
-#    type: nacos
-#    nacos:
-#      serverAddr: 127.0.0.1:8848
-#      dataId: "seataServer.properties"
-#      username: "nacos"
-#      password: "nacos"
-#  registry:
-#    type: nacos
-#    nacos:
-#      application: seata-server
-#      server-addr: 127.0.0.1:8848
-#      username: "nacos"
-#      password: "nacos"
+seata:
+  enabled: true
+  application-id: ${spring.application.name}
+  tx-service-group: default_tx_group
+  config:
+    type: nacos
+    nacos:
+      serverAddr: 127.0.0.1:8848
+      dataId: "seataServer.properties"
+      username: "nacos"
+      password: "nacos"
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server
+      server-addr: 127.0.0.1:8848
+      username: "nacos"
+      password: "nacos"
