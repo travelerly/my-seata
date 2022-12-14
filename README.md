@@ -175,3 +175,21 @@ seata 启动时会对 TCC 接口进行扫描并解析，
 
 
 
+## Seata 源码
+
+### seata 工程结构
+
+- seata-common 模块：提供 seata 封装的工具类、异常类等；
+- setat-core 模块：提供 seata 封装的 RPC、数据模型、通信消息格式等；
+- seata-config 模块：从配置中心读取配置
+- seata-discovery 模块：用于 seata TC 端注册到注册中心、seata TM 从注册中心发下 seata TC；
+- seata-rm 模块：seata 对 RM 的核心实现；
+- seata-rm-datasource 模块：setata 通过对 jdbc 拓展，从而实现对 mysql 等数据库的接入 seata RM 的实现；
+- seata-server 模块：seata TC 的核心实现，提供了事务协调、锁、事务状态、事务会话等功能；
+- seat-tm 模块：seata TM 的核心实现，提供了全局事务管理，例如事务的发起、提交、回滚等；
+- seata-tcc 模块：seata tcc 事务模式的实现；
+- seata-spring 模块：spring 对 seata 集成的实现，例如使用 @GlobalTransactional 注解，自动创建全局事务，就是通过此模块实现的。
+
+
+
+### AT 源码

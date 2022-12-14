@@ -195,6 +195,13 @@ public class GlobalTransactionalInterceptor implements ConfigurationChangeListen
         });
     }
 
+    /**
+     * 处理全局事务
+     * @param methodInvocation
+     * @param aspectTransactional
+     * @return
+     * @throws Throwable
+     */
     Object handleGlobalTransaction(final MethodInvocation methodInvocation,
         final AspectTransactional aspectTransactional) throws Throwable {
         boolean succeed = true;

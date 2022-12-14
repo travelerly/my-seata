@@ -31,9 +31,11 @@ public class RMClient {
      * @param transactionServiceGroup the transaction service group
      */
     public static void init(String applicationId, String transactionServiceGroup) {
+        // 创建 RM 的 netty 远程客户端
         RmNettyRemotingClient rmNettyRemotingClient = RmNettyRemotingClient.getInstance(applicationId, transactionServiceGroup);
         rmNettyRemotingClient.setResourceManager(DefaultResourceManager.get());
         rmNettyRemotingClient.setTransactionMessageHandler(DefaultRMHandler.get());
+        // 初始化 RM 的 netty 远程客户端
         rmNettyRemotingClient.init();
     }
 

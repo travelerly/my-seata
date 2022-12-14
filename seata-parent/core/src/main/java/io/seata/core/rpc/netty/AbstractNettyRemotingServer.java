@@ -57,7 +57,7 @@ public abstract class AbstractNettyRemotingServer extends AbstractNettyRemoting 
         super(messageExecutor);
         // 通过配置创建引导类
         serverBootstrap = new NettyServerBootstrap(nettyServerConfig);
-        // 为引导类设置通道处理器
+        // 设置通道处理器
         serverBootstrap.setChannelHandlers(new ServerHandler());
     }
 
