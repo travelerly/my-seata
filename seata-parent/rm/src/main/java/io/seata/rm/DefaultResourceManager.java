@@ -15,11 +15,6 @@
  */
 package io.seata.rm;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import io.seata.common.exception.FrameworkException;
 import io.seata.common.loader.EnhancedServiceLoader;
 import io.seata.common.util.CollectionUtils;
@@ -28,6 +23,11 @@ import io.seata.core.model.BranchStatus;
 import io.seata.core.model.BranchType;
 import io.seata.core.model.Resource;
 import io.seata.core.model.ResourceManager;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * default resource manager, adapt all resource managers
@@ -111,6 +111,10 @@ public class DefaultResourceManager implements ResourceManager {
 
     @Override
     public void registerResource(Resource resource) {
+        /**
+         * getResourceManager：获取资源管理器
+         * registerResource：向资源管理器注册资源
+         */
         getResourceManager(resource.getBranchType()).registerResource(resource);
     }
 

@@ -16,20 +16,15 @@
 
 package com.alibaba.cloud.seata.feign;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import feign.Client;
 import feign.Request;
 import feign.Response;
 import io.seata.core.context.RootContext;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.util.StringUtils;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * @author xiaojing
@@ -52,18 +47,34 @@ public class SeataFeignClient implements Client {
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * seata feign client 远程调用
+	 * @param request
+	 * @param options
+	 * @return
+	 * @throws IOException
+	 */
 	@Override
 	public Response execute(Request request, Request.Options options) throws IOException {
 
+		/**
+		 * 此处梳理全局事务 id 的传递
+		 * 若获取到全局事务 id 为非空，则将其绑定到请求头中，并随着远程调用传递到下一个服务中
+		 * 若获取到全局事务 id 为空，则不做处理，直接返回
+		 */
 		Request modifiedRequest = getModifyRequest(request);
+
+		// 发起远程调用（全局事务会在请求头中传递全局事务 id）
 		return this.delegate.execute(modifiedRequest, options);
 	}
 
 	private Request getModifyRequest(Request request) {
 
+		// 获取全局事务 id
 		String xid = RootContext.getXID();
 
 		if (StringUtils.isEmpty(xid)) {
+			// 若全局事务 id 为空，则说明是非全局事务，直接放行
 			return request;
 		}
 
@@ -72,8 +83,11 @@ public class SeataFeignClient implements Client {
 
 		List<String> seataXid = new ArrayList<>();
 		seataXid.add(xid);
+
+		// 将全局事务 id 绑定到请求头中
 		headers.put(RootContext.KEY_XID, seataXid);
 
+		// 封装请求参数，请求头中包含全局事务 id，传递到下一个服务中
 		return Request.create(request.method(), request.url(), headers, request.body(),
 				request.charset());
 	}

@@ -15,9 +15,6 @@
  */
 package io.seata.server.coordinator;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-
 import io.seata.core.context.RootContext;
 import io.seata.core.exception.BranchTransactionException;
 import io.seata.core.exception.GlobalTransactionException;
@@ -41,12 +38,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import static io.seata.core.exception.TransactionExceptionCode.BranchTransactionNotExist;
-import static io.seata.core.exception.TransactionExceptionCode.FailedToAddBranch;
-import static io.seata.core.exception.TransactionExceptionCode.GlobalTransactionNotActive;
-import static io.seata.core.exception.TransactionExceptionCode.GlobalTransactionStatusInvalid;
-import static io.seata.core.exception.TransactionExceptionCode.FailedToSendBranchCommitRequest;
-import static io.seata.core.exception.TransactionExceptionCode.FailedToSendBranchRollbackRequest;
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+import static io.seata.core.exception.TransactionExceptionCode.*;
 
 /**
  * The type abstract core.
@@ -73,15 +68,20 @@ public abstract class AbstractCore implements Core {
     @Override
     public Long branchRegister(BranchType branchType, String resourceId, String clientId, String xid,
                                String applicationData, String lockKeys) throws TransactionException {
+        // 查找全局事务会话（根据全局事务 id 到数据库中查找响应数据，没有数据则会抛出异常）
         GlobalSession globalSession = assertGlobalSessionNotNull(xid, false);
+        // 添加全局锁和执行分支事务注册
         return SessionHolder.lockAndExecute(globalSession, () -> {
             globalSessionStatusCheck(globalSession);
             globalSession.addSessionLifecycleListener(SessionHolder.getRootSessionManager());
+            // 创建分支事务会话
             BranchSession branchSession = SessionHelper.newBranchByGlobal(globalSession, branchType, resourceId,
                     applicationData, lockKeys, clientId);
             MDC.put(RootContext.MDC_KEY_BRANCH_ID, String.valueOf(branchSession.getBranchId()));
+            // 设置分支会话锁（即向 lock_table 中添加分支会话锁）
             branchSessionLock(globalSession, branchSession);
             try {
+                // 会话中添加分支事务
                 globalSession.addBranch(branchSession);
             } catch (RuntimeException ex) {
                 branchSessionUnlock(branchSession);
@@ -120,6 +120,7 @@ public abstract class AbstractCore implements Core {
 
     private GlobalSession assertGlobalSessionNotNull(String xid, boolean withBranchSessions)
             throws TransactionException {
+        // 根据全局事务 id 到数据库中查找响应数据
         GlobalSession globalSession = SessionHolder.findGlobalSession(xid, withBranchSessions);
         if (globalSession == null) {
             throw new GlobalTransactionException(TransactionExceptionCode.GlobalTransactionNotExist,

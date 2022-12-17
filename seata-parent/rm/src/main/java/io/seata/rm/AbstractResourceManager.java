@@ -57,13 +57,16 @@ public abstract class AbstractResourceManager implements ResourceManager {
     @Override
     public Long branchRegister(BranchType branchType, String resourceId, String clientId, String xid, String applicationData, String lockKeys) throws TransactionException {
         try {
+            // 创建分支事务请求
             BranchRegisterRequest request = new BranchRegisterRequest();
+            // 设置全局事务 id
             request.setXid(xid);
             request.setLockKey(lockKeys);
             request.setResourceId(resourceId);
             request.setBranchType(branchType);
             request.setApplicationData(applicationData);
 
+            // 发送注册请求
             BranchRegisterResponse response = (BranchRegisterResponse) RmNettyRemotingClient.getInstance().sendSyncRequest(request);
             if (response.getResultCode() == ResultCode.Failed) {
                 throw new RmTransactionException(response.getTransactionExceptionCode(), String.format("Response[ %s ]", response.getMsg()));
@@ -118,6 +121,9 @@ public abstract class AbstractResourceManager implements ResourceManager {
 
     @Override
     public void registerResource(Resource resource) {
+        /**
+         * 向 TC 注册资源
+         */
         RmNettyRemotingClient.getInstance().registerResource(resource.getResourceGroupId(), resource.getResourceId());
     }
 }

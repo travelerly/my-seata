@@ -57,6 +57,7 @@ public class SeataFeignObjectWrapper {
 				return new SeataFeignBlockingLoadBalancerClient(client.getDelegate(),
 						beanFactory.getBean(BlockingLoadBalancerClient.class), this);
 			}
+			// 创建 seata feign client，用于发起远程调用
 			return new SeataFeignClient(this.beanFactory, (Client) bean);
 		}
 		return bean;

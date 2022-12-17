@@ -15,16 +15,6 @@
  */
 package io.seata.server.storage.db.lock;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.sql.DataSource;
 import io.seata.common.exception.DataAccessException;
 import io.seata.common.exception.StoreException;
 import io.seata.common.util.CollectionUtils;
@@ -43,6 +33,16 @@ import io.seata.core.store.db.sql.lock.LockStoreSqlFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.seata.common.DefaultValues.DEFAULT_LOCK_DB_TABLE;
 import static io.seata.core.exception.TransactionExceptionCode.LockKeyConflictFailFast;
@@ -124,17 +124,23 @@ public class LockStoreDataBaseDAO implements LockStore {
             if (!skipCheckLock) {
 
                 boolean canLock = true;
-                //query
+                // 生成检查锁的 sql。query
                 String checkLockSQL = LockStoreSqlFactory.getLogStoreSql(dbType).getCheckLockableSql(lockTable, lockDOs.size());
                 ps = conn.prepareStatement(checkLockSQL);
                 for (int i = 0; i < lockDOs.size(); i++) {
+                    // 拼接 sql 的查询信息
                     ps.setString(i + 1, lockDOs.get(i).getRowKey());
                 }
+
+                // 执行查询操作，结果用于检查
                 rs = ps.executeQuery();
                 String currentXID = lockDOs.get(0).getXid();
                 boolean failFast = false;
                 while (rs.next()) {
+                    // 若查询到了数据，则需查询数据库的全局事务 id
                     String dbXID = rs.getString(ServerTableColumnsName.LOCK_TABLE_XID);
+
+                    // 判断全局事务 id 与当前线程的事务 id 是否一致
                     if (!StringUtils.equals(dbXID, currentXID)) {
                         if (LOGGER.isInfoEnabled()) {
                             String dbPk = rs.getString(ServerTableColumnsName.LOCK_TABLE_PK);
@@ -175,6 +181,8 @@ public class LockStoreDataBaseDAO implements LockStore {
             // lock
             if (unrepeatedLockDOs.size() == 1) {
                 LockDO lockDO = unrepeatedLockDOs.get(0);
+
+                // 执行锁操作（jdbc 添加数据）
                 if (!doAcquireLock(conn, lockDO)) {
                     if (LOGGER.isInfoEnabled()) {
                         LOGGER.info("Global lock acquire failed, xid {} branchId {} pk {}", lockDO.getXid(), lockDO.getBranchId(), lockDO.getPk());

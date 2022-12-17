@@ -103,10 +103,17 @@ public class DefaultGlobalTransaction implements GlobalTransaction {
                 " can't begin a new global transaction, currentXid = " + currentXid);
         }
 
-        // 开启全局事务
+        /**
+         * 开启全局事务，返回全局事务 id
+         */
         xid = transactionManager.begin(null, null, name, timeout);
         status = GlobalStatus.Begin;
+
+        /**
+         * 将全局事务 id 绑定到 seata 上下文中
+         */
         RootContext.bind(xid);
+        
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Begin new global transaction [{}]", xid);
         }

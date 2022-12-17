@@ -15,11 +15,6 @@
  */
 package io.seata.spring.annotation.datasource;
 
-import javax.sql.DataSource;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import io.seata.core.model.BranchType;
 import io.seata.rm.datasource.DataSourceProxy;
 import io.seata.rm.datasource.SeataDataSourceProxy;
@@ -30,6 +25,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
 import org.springframework.aop.support.DefaultIntroductionAdvisor;
+
+import javax.sql.DataSource;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author xingfudeshi@gmail.com
@@ -86,6 +86,10 @@ public class SeataAutoDataSourceProxyCreator extends AbstractAutoProxyCreator {
             }
             // else, build proxy,  put <origin, proxy> to holder and return enhancer
             DataSource origin = (DataSource) bean;
+            /**
+             * 创建 seata 数据源的代理对象
+             * origin：默认为 DruidDataSourceWrapper
+             */
             SeataDataSourceProxy proxy = buildProxy(origin, dataSourceProxyMode);
             DataSourceProxyHolder.put(origin, proxy);
             return enhancer;
@@ -111,6 +115,7 @@ public class SeataAutoDataSourceProxyCreator extends AbstractAutoProxyCreator {
 
     SeataDataSourceProxy buildProxy(DataSource origin, String proxyMode) {
         if (BranchType.AT.name().equalsIgnoreCase(proxyMode)) {
+            // 创建数据源代理，origin=DruidDataSource？
             return new DataSourceProxy(origin);
         }
         if (BranchType.XA.name().equalsIgnoreCase(proxyMode)) {

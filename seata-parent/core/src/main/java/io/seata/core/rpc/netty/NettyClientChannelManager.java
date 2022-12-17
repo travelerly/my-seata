@@ -86,14 +86,20 @@ class NettyClientChannelManager {
     }
 
     /**
+     * 获取通道，建立与 TC 的连接
      * Acquire netty client channel connected to remote server.
      *
      * @param serverAddress server address
      * @return netty channel
      */
     Channel acquireChannel(String serverAddress) {
+        /**
+         * channels：为一个 ConcurrentMap<String, Channel> 对象，即每个 TC 端，RM 至维持一个连接
+         * 在 RM 启动时，channels 里面没有任何连接，即 channelToServer == null
+         */
         Channel channelToServer = channels.get(serverAddress);
         if (channelToServer != null) {
+            // 检测当前连接是否可用，若不可用则返回 null
             channelToServer = getExistAliveChannel(channelToServer, serverAddress);
             if (channelToServer != null) {
                 return channelToServer;
@@ -104,7 +110,7 @@ class NettyClientChannelManager {
         }
         Object lockObj = CollectionUtils.computeIfAbsent(channelLocks, serverAddress, key -> new Object());
         synchronized (lockObj) {
-            // 连接
+            // 创建与 TC 的连接（做了并发处理，每次只能一个线程执行）
             return doConnect(serverAddress);
         }
     }
@@ -164,12 +170,16 @@ class NettyClientChannelManager {
     void reconnect(String transactionServiceGroup) {
         List<String> availList = null;
         try {
-            // 获取服务器列表
+            // 获取服务器列表（与事务分组对应的集群中的所有服务器列表）
             availList = getAvailServerList(transactionServiceGroup);
         } catch (Exception e) {
             LOGGER.error("Failed to get available servers: {}", e.getMessage(), e);
             return;
         }
+
+        /**
+         * 若没有获取到服务器列表，则打印日志，seata 有一个定时任务，每隔一段时间会重新查询集群中的服务器地址
+         */
         if (CollectionUtils.isEmpty(availList)) {
             RegistryService registryService = RegistryFactory.getInstance();
             String clusterName = registryService.getServiceGroup(transactionServiceGroup);
@@ -186,12 +196,13 @@ class NettyClientChannelManager {
             }
             return;
         }
+
         Set<String> channelAddress = new HashSet<>(availList.size());
         try {
             // 遍历服务器列表
             for (String serverAddress : availList) {
                 try {
-                    // 获取通道
+                    // 获取通道，建立与 TC 的连接
                     acquireChannel(serverAddress);
                     channelAddress.add(serverAddress);
                 } catch (Exception e) {
@@ -254,13 +265,18 @@ class NettyClientChannelManager {
     }
 
     private List<String> getAvailServerList(String transactionServiceGroup) throws Exception {
-        // 查找服务器列表
+        /**
+         * 获取服务器列表
+         * 先根据服务分组名称获取集群名称，然后再根据集群名称查询 TC 服务器列表
+         * seata 允许 TC 端多机部署，将 TC 端的多台机器分为一个集群，一个服务分组对应一个集群
+         */
         List<InetSocketAddress> availInetSocketAddressList = RegistryFactory.getInstance()
                 .lookup(transactionServiceGroup);
         if (CollectionUtils.isEmpty(availInetSocketAddressList)) {
             return Collections.emptyList();
         }
 
+        // 将地址转换成 ip:port 的形式
         return availInetSocketAddressList.stream()
                 .map(NetUtil::toStringAddress)
                 .collect(Collectors.toList());

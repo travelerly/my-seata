@@ -92,10 +92,27 @@ public class ServerOnRequestProcessor implements RemotingProcessor, Disposable {
         }
     }
 
+    /**
+     * 处理请求
+     * @param ctx        Channel handler context.
+     * @param rpcMessage rpc message.
+     * @throws Exception
+     */
     @Override
     public void process(ChannelHandlerContext ctx, RpcMessage rpcMessage) throws Exception {
         if (ChannelManager.isRegistered(ctx.channel())) {
-            // 处理 TM 发送的开启全局事务的请求
+            /**
+             * 处理 TM 发送的请求（请求类型有多种）
+             * TYPE_BRANCH_REGISTER
+             * TYPE_BRANCH_STATUS_REPORT
+             * TYPE_GLOBAL_BEGIN
+             * TYPE_GLOBAL_COMMIT
+             * TYPE_GLOBAL_LOCK_QUERY
+             * TYPE_GLOBAL_REPORT
+             * TYPE_GLOBAL_ROLLBACK
+             * TYPE_GLOBAL_STATUS
+             * TYPE_SEATA_MERGE
+             */
             onRequestMessage(ctx, rpcMessage);
         } else {
             try {
@@ -120,6 +137,11 @@ public class ServerOnRequestProcessor implements RemotingProcessor, Disposable {
         }
     }
 
+    /**
+     * 处理请求
+     * @param ctx
+     * @param rpcMessage
+     */
     private void onRequestMessage(ChannelHandlerContext ctx, RpcMessage rpcMessage) {
         Object message = rpcMessage.getBody();
         RpcContext rpcContext = ChannelManager.getContextFromIdentified(ctx.channel());

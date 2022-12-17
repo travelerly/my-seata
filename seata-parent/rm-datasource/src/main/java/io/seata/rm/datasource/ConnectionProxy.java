@@ -15,10 +15,6 @@
  */
 package io.seata.rm.datasource;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Savepoint;
-import java.util.concurrent.Callable;
 import io.seata.common.util.StringUtils;
 import io.seata.config.ConfigurationFactory;
 import io.seata.core.constants.ConfigurationKeys;
@@ -34,9 +30,12 @@ import io.seata.rm.datasource.undo.UndoLogManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.seata.common.DefaultValues.DEFAULT_CLIENT_LOCK_RETRY_POLICY_BRANCH_ROLLBACK_ON_CONFLICT;
-import static io.seata.common.DefaultValues.DEFAULT_CLIENT_REPORT_RETRY_COUNT;
-import static io.seata.common.DefaultValues.DEFAULT_CLIENT_REPORT_SUCCESS_ENABLE;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.util.concurrent.Callable;
+
+import static io.seata.common.DefaultValues.*;
 
 /**
  * The type Connection proxy.
@@ -185,6 +184,7 @@ public class ConnectionProxy extends AbstractConnectionProxy {
     public void commit() throws SQLException {
         try {
             lockRetryPolicy.execute(() -> {
+                // 执行提交事务
                 doCommit();
                 return null;
             });
@@ -227,6 +227,7 @@ public class ConnectionProxy extends AbstractConnectionProxy {
 
     private void doCommit() throws SQLException {
         if (context.inGlobalTransaction()) {
+            // 处理全局事务提交
             processGlobalTransactionCommit();
         } else if (context.isGlobalLockRequire()) {
             processLocalCommitWithGlobalLocks();
@@ -247,12 +248,15 @@ public class ConnectionProxy extends AbstractConnectionProxy {
 
     private void processGlobalTransactionCommit() throws SQLException {
         try {
+            // 注册分支事务
             register();
         } catch (TransactionException e) {
             recognizeLockKeyConflictException(e, context.buildLockKeys());
         }
         try {
+            // 保存 undolog 日志
             UndoLogManagerFactory.getUndoLogManager(this.getDbType()).flushUndoLogs(this);
+            // 提交
             targetConnection.commit();
         } catch (Throwable ex) {
             LOGGER.error("process connectionProxy commit error: {}", ex.getMessage(), ex);
@@ -269,15 +273,19 @@ public class ConnectionProxy extends AbstractConnectionProxy {
         if (!context.hasUndoLog() || !context.hasLockKey()) {
             return;
         }
-        
+
+        /**
+         * 注册分支事务并返回分支事务 id
+         */
         Long branchId = DefaultResourceManager.get().branchRegister(BranchType.AT, getDataSourceProxy().getResourceId(),
             null, context.getXid(), context.getApplicationData(), context.buildLockKeys());
+        // 将分支事务绑定到链接上下文中
         context.setBranchId(branchId);
     }
 
     @Override
     public void rollback() throws SQLException {
-        targetConnection.rollback();
+        targetConnection.rollback();// 回滚
         if (context.inGlobalTransaction() && context.isBranchRegistered()) {
             report(false);
         }

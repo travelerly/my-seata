@@ -15,18 +15,6 @@
  */
 package io.seata.rm.datasource.exec;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.StringJoiner;
-import java.util.TreeSet;
-
 import io.seata.common.DefaultValues;
 import io.seata.common.exception.ShouldNeverHappenException;
 import io.seata.common.util.CollectionUtils;
@@ -44,12 +32,13 @@ import io.seata.rm.datasource.sql.struct.TableMeta;
 import io.seata.rm.datasource.sql.struct.TableMetaCacheFactory;
 import io.seata.rm.datasource.sql.struct.TableRecords;
 import io.seata.rm.datasource.undo.SQLUndoLog;
-import io.seata.sqlparser.ParametersHolder;
-import io.seata.sqlparser.SQLInsertRecognizer;
-import io.seata.sqlparser.SQLRecognizer;
-import io.seata.sqlparser.SQLType;
-import io.seata.sqlparser.WhereRecognizer;
+import io.seata.sqlparser.*;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
 
 import static io.seata.rm.datasource.exec.AbstractDMLBaseExecutor.WHERE;
 
@@ -117,12 +106,21 @@ public abstract class BaseTransactionalExecutor<T, S extends Statement> implemen
 
     @Override
     public T execute(Object... args) throws Throwable {
+        // 获取全局事务 id
         String xid = RootContext.getXID();
+
+        /**
+         * 判断是否为全局事务 id
+         * 若 xid == null，则说明不是全局事务 id
+         * 若 xid != null，则说明是全局事务 id，需将全局事务 id 绑定到代理对象中
+         */
         if (xid != null) {
             statementProxy.getConnectionProxy().bind(xid);
         }
 
+        // 设置全局事务锁
         statementProxy.getConnectionProxy().setGlobalLockRequire(RootContext.requireGlobalLock());
+        // 操作数据库
         return doExecute(args);
     }
 
@@ -440,7 +438,7 @@ public abstract class BaseTransactionalExecutor<T, S extends Statement> implemen
         } else {
             selectSQLJoin.add(" * ");
         }
-        ResultSet rs = null;
+        ResultSet rs = null;// statementProxy.getConnection():获取到的是 DruidPooledConnection
         try (PreparedStatement ps = statementProxy.getConnection().prepareStatement(selectSQLJoin.toString())) {
 
             int paramIndex = 1;

@@ -131,6 +131,11 @@ public class BranchRegisterRequest extends AbstractTransactionRequestToTC  {
         this.applicationData = applicationData;
     }
 
+    /**
+     * 处理分支注册请求
+     * @param rpcContext the rpc context
+     * @return
+     */
     @Override
     public AbstractTransactionResponse handle(RpcContext rpcContext) {
         return handler.handle(this, rpcContext);

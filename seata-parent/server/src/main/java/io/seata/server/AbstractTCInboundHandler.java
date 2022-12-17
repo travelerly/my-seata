@@ -176,12 +176,14 @@ public abstract class AbstractTCInboundHandler extends AbstractExceptionHandler 
 
     @Override
     public BranchRegisterResponse handle(BranchRegisterRequest request, final RpcContext rpcContext) {
+        // 创建分支事务注册的响应对象
         BranchRegisterResponse response = new BranchRegisterResponse();
         exceptionHandleTemplate(new AbstractCallback<BranchRegisterRequest, BranchRegisterResponse>() {
             @Override
             public void execute(BranchRegisterRequest request, BranchRegisterResponse response)
                 throws TransactionException {
                 try {
+                    // 执行分支事务注册
                     doBranchRegister(request, response, rpcContext);
                 } catch (StoreException e) {
                     throw new TransactionException(TransactionExceptionCode.FailedStore, String

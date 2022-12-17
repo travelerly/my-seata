@@ -193,7 +193,18 @@ public final class RmNettyRemotingClient extends AbstractNettyRemotingClient {
             return;
         }
 
+        /**
+         * 启动时，因 RM 还没有与服务端建立连接，所以此判断返回 true
+         * getClientChannelManager()：返回的是 NettyClientChannelManager 对象
+         * NettyClientChannelManager 内部管理着与 TC 的连接的连接池
+         * 由其构造方法完成创建
+         */
         if (getClientChannelManager().getChannels().isEmpty()) {
+            /**
+             * reconnect()：创建与 TC 的连接
+             * transactionServiceGroup：分组事务名，
+             * 即配置文件中的：spring.cloud.alibaba.seata.tx-service-group
+             */
             getClientChannelManager().reconnect(transactionServiceGroup);
             return;
         }
@@ -210,9 +221,11 @@ public final class RmNettyRemotingClient extends AbstractNettyRemotingClient {
     }
 
     public void sendRegisterMessage(String serverAddress, Channel channel, String resourceId) {
+        // 创建注册 RM 资源请求对象
         RegisterRMRequest message = new RegisterRMRequest(applicationId, transactionServiceGroup);
         message.setResourceIds(resourceId);
         try {
+            // 异步发送注册请求
             super.sendAsyncRequest(channel, message);
         } catch (FrameworkException e) {
             if (e.getErrcode() == FrameworkErrorCode.ChannelIsNotWritable && serverAddress != null) {

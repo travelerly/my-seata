@@ -206,6 +206,7 @@ public abstract class AbstractNettyRemotingClient extends AbstractNettyRemoting 
         if (rpcMessage.getBody() instanceof MergeMessage) {
             mergeMsgMap.put(rpcMessage.getId(), (MergeMessage) rpcMessage.getBody());
         }
+        // 异步发送请求
         super.sendAsync(channel, rpcMessage);
     }
 

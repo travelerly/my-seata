@@ -67,6 +67,7 @@ public class SeataFeignClientAutoConfiguration {
 		@Bean
 		static SeataBeanPostProcessor seataBeanPostProcessor(
 				SeataFeignObjectWrapper seataFeignObjectWrapper) {
+			// seata 的 bean 后置处理器
 			return new SeataBeanPostProcessor(seataFeignObjectWrapper);
 		}
 

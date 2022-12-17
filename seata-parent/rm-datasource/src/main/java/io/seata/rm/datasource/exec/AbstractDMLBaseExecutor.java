@@ -15,16 +15,6 @@
  */
 package io.seata.rm.datasource.exec;
 
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 import io.seata.common.exception.NotSupportYetException;
 import io.seata.common.util.CollectionUtils;
 import io.seata.rm.datasource.AbstractConnectionProxy;
@@ -36,6 +26,16 @@ import io.seata.sqlparser.SQLRecognizer;
 import io.seata.sqlparser.util.JdbcConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * The type Abstract dml base executor.
@@ -79,6 +79,7 @@ public abstract class AbstractDMLBaseExecutor<T, S extends Statement> extends Ba
     public T doExecute(Object... args) throws Throwable {
         AbstractConnectionProxy connectionProxy = statementProxy.getConnectionProxy();
         if (connectionProxy.getAutoCommit()) {
+            // 执行
             return executeAutoCommitTrue(args);
         } else {
             return executeAutoCommitFalse(args);
@@ -96,11 +97,27 @@ public abstract class AbstractDMLBaseExecutor<T, S extends Statement> extends Ba
         if (!JdbcConstants.MYSQL.equalsIgnoreCase(getDbType()) && isMultiPk()) {
             throw new NotSupportYetException("multi pk only support mysql!");
         }
+
+        /**
+         * 创建前置镜像
+         */
         TableRecords beforeImage = beforeImage();
+
+        /**
+         * 执行具体 sql，即 jdbc 的操作
+         */
         T result = statementCallback.execute(statementProxy.getTargetStatement(), args);
         int updateCount = statementProxy.getUpdateCount();
         if (updateCount > 0) {
+
+            /**
+             * 创建后置镜像
+             */
             TableRecords afterImage = afterImage(beforeImage);
+
+            /**
+             * 创建 undolog 日志（包含前置镜像和后置镜像）
+             */
             prepareUndoLog(beforeImage, afterImage);
         }
         return result;
@@ -136,11 +153,28 @@ public abstract class AbstractDMLBaseExecutor<T, S extends Statement> extends Ba
      * @throws Throwable the throwable
      */
     protected T executeAutoCommitTrue(Object[] args) throws Throwable {
+        // 获取链接代理对象
         ConnectionProxy connectionProxy = statementProxy.getConnectionProxy();
         try {
+            // 关闭自动提交事务功能
             connectionProxy.changeAutoCommit();
+
+            // 创建锁重试粗略并返回结果
             return new LockRetryPolicy(connectionProxy).execute(() -> {
+
+                /**
+                 * 执行事务
+                 * 包含：
+                 * 1.创建前置镜像
+                 * 2.执行具体 sql
+                 * 3.创建后置镜像
+                 * 4.创建 undolog 日志（包含前置镜像和后置镜像）
+                 */
                 T result = executeAutoCommitFalse(args);
+
+                /**
+                 * 提交事务
+                 */
                 connectionProxy.commit();
                 return result;
             });
@@ -148,6 +182,9 @@ public abstract class AbstractDMLBaseExecutor<T, S extends Statement> extends Ba
             // when exception occur in finally,this exception will lost, so just print it here
             LOGGER.error("execute executeAutoCommitTrue error:{}", e.getMessage(), e);
             if (!LockRetryPolicy.isLockRetryPolicyBranchRollbackOnConflict()) {
+                /**
+                 * todo：回滚事务
+                 */
                 connectionProxy.getTargetConnection().rollback();
             }
             throw e;

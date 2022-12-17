@@ -15,17 +15,10 @@
  */
 package io.seata.rm.datasource;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import javax.sql.DataSource;
-
+import io.seata.common.ConfigurationKeys;
 import io.seata.common.Constants;
 import io.seata.common.thread.NamedThreadFactory;
 import io.seata.config.ConfigurationFactory;
-import io.seata.common.ConfigurationKeys;
 import io.seata.core.context.RootContext;
 import io.seata.core.model.BranchType;
 import io.seata.core.model.Resource;
@@ -35,6 +28,13 @@ import io.seata.rm.datasource.util.JdbcUtils;
 import io.seata.sqlparser.util.JdbcConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static io.seata.common.DefaultValues.DEFAULT_CLIENT_TABLE_META_CHECK_ENABLE;
 import static io.seata.common.DefaultValues.DEFAULT_TABLE_META_CHECKER_INTERVAL;
@@ -85,9 +85,11 @@ public class DataSourceProxy extends AbstractDataSourceProxy implements Resource
     }
 
     /**
+     * 数据源代理类
+     *
      * Instantiates a new Data source proxy.
      *
-     * @param targetDataSource the target data source
+     * @param targetDataSource 目标数据源，默认为 DruidDataSourceWrapper
      * @param resourceGroupId  the resource group id
      */
     public DataSourceProxy(DataSource targetDataSource, String resourceGroupId) {
@@ -96,13 +98,25 @@ public class DataSourceProxy extends AbstractDataSourceProxy implements Resource
             targetDataSource = ((SeataDataSourceProxy) targetDataSource).getTargetDataSource();
         }
         this.targetDataSource = targetDataSource;
+
+        /**
+         * 初始化数据源代理对象
+         * targetDataSource：默认为 DruidDataSourceWrapper
+         */
         init(targetDataSource, resourceGroupId);
     }
 
+    /**
+     * 1.判断数据库类型
+     * 2.向资源管理器注册 DataSourceProxy，注册主要是找到与事务分组相对应的 TC 集群，并与集群中的每一台机器建立连接
+     * 3.判断是否启动定时任务，定时缓存数据库表结构，表结构在 RM 保存数据快照时使用
+     */
     private void init(DataSource dataSource, String resourceGroupId) {
         this.resourceGroupId = resourceGroupId;
         try (Connection connection = dataSource.getConnection()) {
+            // 数据库连接 url
             jdbcUrl = connection.getMetaData().getURL();
+            // 通过 rul 分析数据库类型（Oracle 或 MySQL）
             dbType = JdbcUtils.getDbType(jdbcUrl);
             if (JdbcConstants.ORACLE.equals(dbType)) {
                 userName = connection.getMetaData().getUserName();
@@ -113,7 +127,19 @@ public class DataSourceProxy extends AbstractDataSourceProxy implements Resource
             throw new IllegalStateException("can not init dataSource", e);
         }
         initResourceId();
+
+        /**
+         * 向资源管理器注册本类
+         * DefaultResourceManager：资源管理器
+         * DataSourceProxy 实现了 Resource 接口，因此其就为资源类
+         */
         DefaultResourceManager.get().registerResource(this);
+
+        /**
+         * ENABLE_TABLE_META_CHECKER_ENABLE：是否开启定时任务，用于定时将表结构缓存到内存中。
+         * 默认 1 分钟运行一次
+         * 缓存的表结构在 RM 保存记录快照时使用，若没有缓存，则会实时查询数据库
+         */
         if (ENABLE_TABLE_META_CHECKER_ENABLE) {
             tableMetaExecutor.scheduleAtFixedRate(() -> {
                 try (Connection connection = dataSource.getConnection()) {

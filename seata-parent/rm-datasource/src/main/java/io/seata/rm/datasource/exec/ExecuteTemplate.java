@@ -15,10 +15,6 @@
  */
 package io.seata.rm.datasource.exec;
 
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
-
 import io.seata.common.exception.NotSupportYetException;
 import io.seata.common.loader.EnhancedServiceLoader;
 import io.seata.common.util.CollectionUtils;
@@ -29,6 +25,10 @@ import io.seata.rm.datasource.exec.mysql.MySQLInsertOrUpdateExecutor;
 import io.seata.rm.datasource.sql.SQLVisitorFactory;
 import io.seata.sqlparser.SQLRecognizer;
 import io.seata.sqlparser.util.JdbcConstants;
+
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
 
 /**
  * The type Execute template.
@@ -75,6 +75,7 @@ public class ExecuteTemplate {
             return statementCallback.execute(statementProxy.getTargetStatement(), args);
         }
 
+        // 获取数据库类型
         String dbType = statementProxy.getConnectionProxy().getDbType();
         if (CollectionUtils.isEmpty(sqlRecognizers)) {
             sqlRecognizers = SQLVisitorFactory.get(
@@ -86,6 +87,7 @@ public class ExecuteTemplate {
             executor = new PlainExecutor<>(statementProxy, statementCallback);
         } else {
             if (sqlRecognizers.size() == 1) {
+                // 获取 sql 识别器
                 SQLRecognizer sqlRecognizer = sqlRecognizers.get(0);
                 switch (sqlRecognizer.getSQLType()) {
                     case INSERT:
@@ -123,6 +125,7 @@ public class ExecuteTemplate {
         }
         T rs;
         try {
+            // 执行 sql
             rs = executor.execute(args);
         } catch (Throwable ex) {
             if (!(ex instanceof SQLException)) {

@@ -248,6 +248,7 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
     protected void doBranchRegister(BranchRegisterRequest request, BranchRegisterResponse response,
                                     RpcContext rpcContext) throws TransactionException {
         MDC.put(RootContext.MDC_KEY_XID, request.getXid());
+        // 分支事务的注册
         response.setBranchId(
                 core.branchRegister(request.getBranchType(), request.getResourceId(), rpcContext.getClientId(),
                         request.getXid(), request.getApplicationData(), request.getLockKey()));
@@ -483,7 +484,18 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
         AbstractTransactionRequestToTC transactionRequest = (AbstractTransactionRequestToTC) request;
         transactionRequest.setTCInboundHandler(this);
 
-        // 处理请求
+        /**
+         * 处理请求（请求类型有多种）
+         * TYPE_BRANCH_REGISTER：分支事务注册请求
+         * TYPE_BRANCH_STATUS_REPORT
+         * TYPE_GLOBAL_BEGIN
+         * TYPE_GLOBAL_COMMIT
+         * TYPE_GLOBAL_LOCK_QUERY
+         * TYPE_GLOBAL_REPORT
+         * TYPE_GLOBAL_ROLLBACK
+         * TYPE_GLOBAL_STATUS
+         * TYPE_SEATA_MERGE
+         */
         return transactionRequest.handle(context);
     }
 
